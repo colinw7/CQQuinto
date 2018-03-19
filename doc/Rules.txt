@@ -1,0 +1,36 @@
+5 numbers in hand per turn
+Must connect to another tile (except first turn)
+Can play all 5 except first turn ?
+Sum adds to 5
+Max of 5 tiles in a row
+Score is tile total
+18x12 board
+First move in middle
+
+7  - #0 Tiles
+6  - #1 Tiles
+6  - #2 Tiles
+7  - #3 Tiles
+10 - #4 Tiles
+6  - #5 Tiles
+10 - #6 Tiles
+14 - #7 Tiles
+12 - #8 Tiles
+12 - #9 Tiles
+
+Variant:
+
+BROWN TILES:
+#0 - 7 tiles
+#1 - 6 tiles
+#2 - 6 tiles
+#3 - 7 tiles
+#4 - 10 tiles
+#5 - 6 tiles
+#6 - 10 tiles
+#7 - 14 tiles
+#8 - 12 tiles
+#9 - 12 tiles
+
+RED 'MUTILES':
+5, 6, 7, 8, and 9 - one each
