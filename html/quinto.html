@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<style>
+.button {
+  background-color: #aaddaa;
+  border: none;
+  color: black;
+  padding: 2px 2px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 2px 2px;
+}
+
+.button:disabled {
+  background-color: #dddddd; 
+  color: #aaaaaa;
+}
+</style>
+
+<meta charset="UTF-8">
+<title>Quinto</title>
+<script src="quinto.js" type="text/javascript"></script>
+</head>
+<body>
+<div style="position: absolute; top: 50px; left: 50px;">
+<form>
+<input class="button" type="button" id="backButton"    value="Back">
+<input class="button" type="button" id="cancelButton"  value="Cancel">
+<input class="button" type="button" id="applyButton"   value="Apply">
+<input class="button" type="button" id="newGameButton" value="New Game">
+<select id="modeSelect">
+<option value="0">Human/Human</option>
+<option value="1">Human/Computer</option>
+<option value="2">Computer/Human</option>
+<option value="3">Computer/Computer</option>
+</select>
+</form>
+<canvas id="canvas" width="800" height="640">
+Your browser does not support HTML 5 Canvas.
+</canvas>
+</div>
+</body>
+</html>
