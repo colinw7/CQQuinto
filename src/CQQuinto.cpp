@@ -513,7 +513,7 @@ computerMove()
       nextTurn();
 
       // if other player can't move then game over
-      if (! this->currentPlayer()->canMove()) {
+      if (! currentPlayer()->canMove()) {
         setGameOver(true);
         break;
       }
@@ -1631,12 +1631,16 @@ MoveTree *
 Board::
 boardMoveTree() const
 {
-  return buildBoardMoveTree(0);
+  auto root = new MoveTree;
+
+  (void) buildMoveTree(root, 0);
+
+  return root;
 }
 
-MoveTree *
+bool
 Board::
-buildBoardMoveTree(int depth) const
+buildMoveTree(MoveTree *tree, int depth) const
 {
   assert(depth <= 5);
 
@@ -1645,9 +1649,7 @@ buildBoardMoveTree(int depth) const
   moves.depth = depth;
 
   if (! boardMoves(moves))
-    return nullptr;
-
-  auto tree = new MoveTree;
+    return false;
 
   tree->partial = moves.partial;
   tree->score   = moves.score;
@@ -1655,19 +1657,22 @@ buildBoardMoveTree(int depth) const
   for (auto &move : moves.moves) {
     quinto_->doMoveParts(move.from(), move.to());
 
-    auto childTree = buildBoardMoveTree(depth + 1);
+    auto child = new MoveTree;
 
-    if (childTree) {
-      childTree->parent = tree;
-      childTree->move   = move;
+    if (buildMoveTree(child, depth + 1)) {
+      tree->addChild(child);
 
-      tree->children.push_back(childTree);
+      child->move = move;
+    }
+    else {
+      delete child;
     }
 
     quinto_->doMoveParts(move.to(), move.from());
   }
 
-  return tree;
+std::cerr << tree->root()->size() << std::endl;
+  return true;
 }
 
 bool
@@ -1704,7 +1709,7 @@ boardMoves(BoardMoves &moves) const
       if (! tile) continue;
 
       auto p = values.find(tile->value());
-      if (p != values.end()) { /*std::cerr << "Duplicate tile value\n";*/ continue; };
+      if (p != values.end()) continue;
 
       TilePosition pos(i, 0);
 
@@ -1880,16 +1885,26 @@ calcBoardDetails()
 
   // check all lines
   for (const auto &line : boardLines.hlines) {
-    details_.valid = line.isValid(details_.partial, details_.errMsg);
+    LineValid lineValid;
 
-    //line.print(std::cerr, details_.errMsg); std::cerr << "\n";
+    details_.valid = line.isValid(lineValid);
 
-    if (! details_.valid)
+    details_.partial = lineValid.partial;
+    details_.errMsg  = lineValid.errMsg;
+
+    if (! details_.valid) {
+      //line.print(std::cerr, details_.errMsg); std::cerr << "\n";
       return;
+    }
   }
 
   for (const auto &line : boardLines.vlines) {
-    details_.valid = line.isValid(details_.partial, details_.errMsg);
+    LineValid lineValid;
+
+    details_.valid = line.isValid(lineValid);
+
+    details_.partial = lineValid.partial;
+    details_.errMsg  = lineValid.errMsg;
 
     //line.print(std::cerr, details_.errMsg); std::cerr << "\n";
 
@@ -1974,12 +1989,13 @@ calcBoardDetails()
 
     //---
 
-    TilePosition pos(ix1, iy1);
+    //TilePosition pos(ix1, iy1);
 
-    auto tile = cellTile(pos);
+    //auto tile = cellTile(pos);
     //assert(tile);
 
-    details_.score   = tile->value();
+    details_.valid   = true;
+    details_.score   = boardLines.score();
     details_.partial = ((details_.score % 5) != 0);
 
     return;
@@ -2006,11 +2022,11 @@ calcBoardDetails()
   //---
 
   // score all lines
-  for (const auto &line : boardLines.hlines)
-    details_.score += line.sum;
+  details_.score = boardLines.score();
 
-  for (const auto &line : boardLines.vlines)
-    details_.score += line.sum;
+  //---
+
+  details_.partial = ((details_.score % 5) != 0);
 
   //---
 
@@ -2034,6 +2050,8 @@ calcBoardDetails()
       if (iy2 <  ny) addValidPosition(TilePosition(line.pos, iy2));
     }
   }
+
+  //---
 
   if (! details_.partial) {
     //assert((details_.score % 5) == 0);
@@ -2414,6 +2432,24 @@ posToTileData(const QPoint &pos) const
 
 //------
 
+int
+BoardLines::
+score() const
+{
+  // score all lines
+  int score = 0;
+
+  for (const auto &line : hlines)
+    score += line.sum;
+
+  for (const auto &line : vlines)
+    score += line.sum;
+
+  return score;
+}
+
+//------
+
 TileLine::
 TileLine(Direction direction, int start, int end, int pos) :
  direction(direction), start(start), end(end), pos(pos)
@@ -2451,10 +2487,13 @@ startPos() const
 
 bool
 TileLine::
-isValid(bool &partial, QString &errMsg) const
+isValid(LineValid &lineValid) const
 {
+  lineValid.partial = false;
+  lineValid.errMsg  = "";
+
   if (len() > 5) {
-    errMsg = "Line too long";
+    lineValid.errMsg = "Line too long";
     return false;
   }
 
@@ -2462,12 +2501,12 @@ isValid(bool &partial, QString &errMsg) const
 
   if ((sum % 5) != 0) {
     if (len() == 5) {
-      errMsg = "Not a multiple of 5";
+      lineValid.errMsg = "Not a multiple of 5";
       return false;
     }
 
-    partial = true;
-    errMsg  = "Not a multiple of 5 (yet)";
+    lineValid.partial = true;
+    lineValid.errMsg  = "Not a multiple of 5 (yet)";
   }
 
   return true;
@@ -2615,6 +2654,18 @@ depth() const
     return 1;
 
   return parent->depth() + 1;
+}
+
+int
+MoveTree::
+size() const
+{
+  int s = 1;
+
+  for (const auto &child : children)
+    s += child->size();
+
+  return s;
 }
 
 void

@@ -1,3 +1,5 @@
+'use strict';
+
 window.addEventListener("load", eventWindowLoaded, false);
 
 var TileOwner = Object.freeze({ "NONE":0, "PLAYER1":1, "PLAYER2":2, "BOARD":3, "TILE_SET":4 });
@@ -178,7 +180,7 @@ Quinto.prototype.updateState = function() {
 
   //---
 
-  //this.showBestMove();
+  //this.board.showBestMove();
 };
 
 Quinto.prototype.updateWidgets = function() {
@@ -197,7 +199,7 @@ Quinto.prototype.updateWidgets = function() {
 //------
 
 Quinto.prototype.cancelPressed = function() {
-console.log("Quinto.prototype.cancelPressed");
+//console.log("Quinto.prototype.cancelPressed");
   quinto.cancel();
 };
 
@@ -206,12 +208,12 @@ console.log("Quinto.prototype.cancel");
   var n = this.turn.moves.length;
 
   for (var i = n - 1; i >= 0; --i) {
-    var move = turn.move(i);
+    var move = this.turn.move(i);
 
     this.undoMove(move);
   }
 
-  turn.clear();
+  this.turn.clear();
 
   //---
 
@@ -221,7 +223,7 @@ console.log("Quinto.prototype.cancel");
 //------
 
 Quinto.prototype.backPressed = function() {
-console.log("Quinto.prototype.backPressed");
+//console.log("Quinto.prototype.backPressed");
   quinto.back();
 };
 
@@ -245,7 +247,7 @@ console.log("Quinto.prototype.back", move);
 //------
 
 Quinto.prototype.applyPressed = function() {
-console.log("Quinto.prototype.applyPressed");
+//console.log("Quinto.prototype.applyPressed");
   assert(quinto.currentPlayer.type === PlayerType.HUMAN, "bad player");
 
   quinto.apply(true);
@@ -255,7 +257,7 @@ Quinto.prototype.apply = function(next) {
 console.log("Quinto.prototype.apply", next);
   // check valid
   var validScore = this.isTurnValid();
-console.log(validScore);
+//console.log(validScore);
 
   if (! validScore.valid)
     return;
@@ -288,28 +290,28 @@ Quinto.prototype.computerMove = function()  {
 
   while (this.currentPlayer.type === PlayerType.COMPUTER) {
 console.log("Quinto.prototype.computerMove");
-    var currentPlayer = this.currentPlayer();
+    var currentPlayer = this.currentPlayer;
 
-    while (this.currentPlayer() === currentPlayer && currentPlayer().canMove()) {
+    while (this.currentPlayer === currentPlayer && this.currentPlayer.canMove) {
       // auto play computers best move
       this.playComputerMove();
 
       // if other player can move computer is done
-      if (this.currentPlayer().canMove())
+      if (this.currentPlayer.canMove)
         break;
 
       // skip other player
       this.nextTurn();
 
-      assert(this.currentPlayer() === currentPlayer, "Bad player");
+      assert(this.currentPlayer === currentPlayer, "Bad player");
     }
 
     // if computer can't move then check if game over
-    if (this.currentPlayer() === currentPlayer) {
+    if (this.currentPlayer === currentPlayer) {
       this.nextTurn();
 
       // if other player can't move then game over
-      if (! this.currentPlayer().canMove()) {
+      if (! this.currentPlayer.canMove) {
         this.setGameOver(true);
         break;
       }
@@ -320,7 +322,7 @@ console.log("Quinto.prototype.computerMove");
 //------
 
 Quinto.prototype.newGamePressed = function() {
-console.log("Quinto.prototype.newGamePressed");
+//console.log("Quinto.prototype.newGamePressed");
   quinto.newGame();
 };
 
@@ -474,31 +476,34 @@ console.log("Quinto.prototype.canMove");
   if (details.validPositions.size === 0)
     return false;
 
-/*
   var bestMove = this.board.getBestMove();
 
-  if (! bestMove.valid)
+  if (! bestMove.isValid())
     return false;
-*/
 
   return true;
 };
 
 Quinto.prototype.isTurnValid = function() {
-console.log("Quinto.prototype.isTurnValid");
+//console.log("Quinto.prototype.isTurnValid");
   var details = this.board.boardDetails();
-console.log(details);
+//console.log(details);
 
-  return { "valid" : details.valid && ! details.partial, "score" : details.score };
+  var validScore = new ValidScore();
+
+  validScore.valid = details.valid && ! details.partial;
+  validScore.score = details.score;
+
+  return validScore;
 };
 
 Quinto.prototype.undoMove = function(move) {
-console.log("Quinto.prototype.undoMove", move);
+//console.log("Quinto.prototype.undoMove", move);
   this.doMoveParts(move.to, move.from);
 };
 
 Quinto.prototype.doMove = function(move) {
-console.log("Quinto.prototype.doMove", move);
+//console.log("Quinto.prototype.doMove", move);
   this.doMoveParts(move.from, move.to);
 };
 
@@ -545,7 +550,7 @@ console.log("from Board -> Board");
       var fromTile = this.board.takeCellTile(from.pos);
       assert(fromTile !== null, "null board from tile");
 
-      board.setCellTile(to.pos, fromTile);
+      this.board.setCellTile(to.pos, fromTile);
     }
   }
   else {
@@ -554,7 +559,7 @@ console.log("from Board -> Board");
 };
 
 Quinto.prototype.moveScore = function(move) {
-console.log("Quinto.prototype.moveScore", move);
+//console.log("Quinto.prototype.moveScore", move);
   var to = move.to();
 
   if (to.owner === TileOwner.BOARD) {
@@ -568,7 +573,7 @@ console.log("Quinto.prototype.moveScore", move);
 };
 
 Quinto.prototype.addMove = function(move) {
-console.log("Quinto.prototype.addMove", move);
+//console.log("Quinto.prototype.addMove", move);
   this.turn.addMove(move);
 };
 
@@ -580,7 +585,7 @@ Quinto.prototype.drawScreen = function() {
 
   //---
 
-  this.gc.clearRect(0, 0, canvas.width, canvas.height);
+  this.gc.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
   var w = this.canvas.width  - 2*this.border;
   var h = this.canvas.height - 4*this.border;
@@ -806,7 +811,7 @@ Quinto.prototype.posToTileData = function(x, y) {
 };
 
 Quinto.prototype.eventMouseDown = function(e) {
-console.log("Quinto.prototype.eventMouseDown", e);
+//console.log("Quinto.prototype.eventMouseDown", e);
   quinto.mouseDown = true;
 
   var rect = quinto.canvas.getBoundingClientRect();
@@ -848,7 +853,7 @@ Quinto.prototype.eventMouseMove = function(e) {
 };
 
 Quinto.prototype.eventMouseUp = function(e) {
-console.log("Quinto.prototype.eventMouseUp", e);
+//console.log("Quinto.prototype.eventMouseUp", e);
   var rect = quinto.canvas.getBoundingClientRect();
 
   quinto.mouseX2 = e.clientX - rect.left;
@@ -1090,7 +1095,7 @@ Player.prototype.drawTiles = function() {
 };
 
 Player.prototype.takeTile = function(i, nocheck) {
-console.log("Player.prototype.takeTile", i, nocheck);
+//console.log("Player.prototype.takeTile", i, nocheck);
   assert(i >= 0 && i < quinto.handSize, "Out of range");
 
   var tile = this.tiles[i];
@@ -1291,7 +1296,7 @@ Board.prototype.playBestMove = function() {
 console.log("Board.prototype.playBestMove");
   var bestMove = this.getBestMove();
 
-  if (! bestMove.valid) {
+  if (! bestMove.isValid()) {
 console.log("No best move");
     return;
   }
@@ -1311,7 +1316,7 @@ console.log("Board.prototype.showBestMove");
 };
 
 Board.prototype.getBestMove = function() {
-console.log("Board.prototype.getBestMove");
+//console.log("Board.prototype.getBestMove");
   if (! this.bestMoveValid) {
     this.calcBestMove();
 
@@ -1322,44 +1327,49 @@ console.log("Board.prototype.getBestMove");
 };
 
 Board.prototype.calcBestMove = function() {
+console.log("Board.prototype.calcBestMove");
   this.bestMove.reset();
 
   var moveTree = this.boardMoveTree();
 
   if (moveTree === null) {
-conole.log("no tree");
-    return { "valid": false, "moves": [], "score": 0 };
+    console.log("no tree");
+    return;
   }
 
-console.log(moveTree);
+//console.log(moveTree);
   var maxLeaf = moveTree.maxLeaf();
-console.log(maxLeaf);
+//console.log(maxLeaf);
 
   if (maxLeaf !== null) {
-    maxLeaf.hierMoves(bestMove.moves);
+    maxLeaf.hierMoves(this.bestMove.moves);
 
-    bestMove.score = maxLeaf.score;
+    this.bestMove.score = maxLeaf.score;
   }
 };
 
 Board.prototype.boardMoveTree = function() {
-  return this.buildBoardMoveTree(0);
+  var root = new MoveTree();
+
+  this.buildMoveTree(root, 0);
+
+  return root;
 };
 
-Board.prototype.buildBoardMoveTree = function(depth) {
-console.log("Board.prototype.buildBoardMoveTree", depth);
+Board.prototype.buildMoveTree = function(tree, depth) {
+console.log("Board.prototype.buildMoveTree", depth);
   assert(depth <= 5, "bad depth");
 
-  var moves = this.boardMoves();
+  var moves = new BoardMoves();
 
-  if (! moves.valid) {
-console.log("no moves");
+  moves.depth = depth;
+
+  if (! this.boardMoves(moves)) {
+    console.log("no moves");
     return null;
   }
 
-console.log(moves.moves);
-
-  var tree = new MoveTree();
+//console.log(moves.moves);
 
   tree.partial = moves.partial;
   tree.score   = moves.score;
@@ -1369,44 +1379,45 @@ console.log(moves.moves);
 
     quinto.doMoveParts(move.from, move.to);
 
-    var childTree = this.buildBoardMoveTree(depth + 1);
+    var child = new MoveTree();
 
-    if (childTree !== null) {
-      childTree.parent = tree;
-      childTree.move   = move;
+    if (this.buildMoveTree(child, depth + 1)) {
+      tree.addChild(child);
 
-      tree.children.push(childTree);
+      child.move = move;
     }
 
     quinto.doMoveParts(move.to, move.from);
   }
 
-  return tree;
+console.log(tree.root().size());
+  return true;
 };
 
-Board.prototype.boardMoves = function() {
+Board.prototype.boardMoves = function(moves) {
 console.log("Board.prototype.boardMoves");
   var details = this.boardDetails();
 
   if (! details.valid) {
-    return { "valid": false, "score": 0, "moves": [], "partial": false };
+    return false;
   }
+
+  //assert(details.npt == moves.depth, "bad depth");
 
   //---
 
-  var moves   = [];
-  var score   = details.score;
-  var partial = details.partial;
+  moves.score   = details.score;
+  moves.partial = details.partial;
 
   //---
 
   var handSize = quinto.handSize;
 
   var currentPlayer = quinto.currentPlayer;
-console.log(currentPlayer);
+//console.log(currentPlayer);
 
   var playerOwner = currentPlayer.owner;
-console.log(playerOwner);
+//console.log(playerOwner);
 
   for (var position of details.validPositions.values()) {
     var values = new Set();
@@ -1425,18 +1436,18 @@ console.log(playerOwner);
 
       var move = new Move(from, to);
 
-      moves.push(move);
+      moves.moves.push(move);
 
       values.add(tile.value);
     }
   }
-console.log(moves);
+//console.log(moves);
 
-  return { "valid": true, "score": score, "moves": moves, "partial": partial };
+  return true;
 };
 
 Board.prototype.boardDetails = function() {
-console.log("Board.prototype.boardDetails");
+//console.log("Board.prototype.boardDetails");
   if (! this.detailsValid) {
     this.calcBoardDetails();
 
@@ -1448,6 +1459,7 @@ console.log("Board.prototype.boardDetails");
 
 // depends on cells, current turn
 Board.prototype.calcBoardDetails = function() {
+console.log("Board.prototype.calcBoardDetails");
   this.details.reset();
 
   this.details.valid   = true;
@@ -1507,7 +1519,7 @@ Board.prototype.calcBoardDetails = function() {
 
   // no tiles placed yet (for current player) then must be valid,
   if (this.details.npt === 0) {
-    assert(boardLines.xinds.size === 0 && boardLines.yinds.size === 0, "Tile count mismatch");
+    //assert(boardLines.xinds.size === 0 && boardLines.yinds.size === 0, "Tile count mismatch");
 
     // play off existing pieces (board not empty)
     for (var iy = 0; iy < ny; ++iy) {
@@ -1569,38 +1581,40 @@ Board.prototype.calcBoardDetails = function() {
   for (var i = 0; i < boardLines.hlines.length; ++i) {
     var line = boardLines.hlines[i];
 
-    var values = line.isValid();
+    var lineValid = new LineValid();
 
-    this.details.valid   = values.valid;
-    this.details.partial = values.partial;
-    this.details.errMsg  = values.errMsg;
+    this.details.valid = line.isValid(lineValid);
 
-    //console.log(details.errMsg);
+    this.details.partial = lineValid.partial;
+    this.details.errMsg  = lineValid.errMsg;
 
-    if (! this.details.valid)
+    if (! this.details.valid) {
+      //console.log(details.errMsg);
       return;
+    }
   }
 
   for (var i = 0; i < boardLines.vlines.length; ++i) {
     var line = boardLines.vlines[i];
 
-    var values = line.isValid();
+    var lineValid = new LineValid();
 
-    this.details.valid   = values.valid;
-    this.details.partial = values.partial;
-    this.details.errMsg  = values.errMsg;
+    this.details.valid = line.isValid(lineValid);
 
-    //console.log(details.errMsg);
+    this.details.partial = lineValid.partial;
+    this.details.errMsg  = lineValid.errMsg;
 
-    if (! this.details.valid)
+    if (! this.details.valid) {
+      //console.log(details.errMsg);
       return;
+    }
   }
 
   //---
 
   // single piece played then check row or column
   if (this.details.npt === 1) {
-    assert(boardLines.xinds.size === 1 && boardLines.yinds.size === 1, "Tile count mismatch");
+    //assert(boardLines.xinds.size === 1 && boardLines.yinds.size === 1, "Tile count mismatch");
 
     var ix1 = boardLines.xinds.values().next().value;
     var iy1 = boardLines.yinds.values().next().value;
@@ -1673,12 +1687,13 @@ Board.prototype.calcBoardDetails = function() {
 
     //---
 
-    var pos = new TilePosition(ix1, iy1);
+    //var pos = new TilePosition(ix1, iy1);
 
-    var tile = this.cellTile(pos);
-    assert(tile !== null, "bad tile");
+    //var tile = this.cellTile(pos);
+    //assert(tile !== null, "bad tile");
 
-    this.details.score   = tile.value;
+    this.details.valid   = true;
+    this.details.score   = boardLines.score();
     this.details.partial = ((this.details.score % 5) !== 0);
 
     return;
@@ -1700,25 +1715,13 @@ Board.prototype.calcBoardDetails = function() {
 
   //---
 
-  var lines = [];
-
-  if (horizontal)
-    lines = boardLines.hlines;
-  else
-    lines = boardLines.vlines;
-
-  assert(lines.length !== 0, "Lines empty");
+  var lines = (horizontal ? boardLines.hlines : boardLines.vlines);
+  //assert(lines.length !== 0, "Lines empty");
 
   //---
 
   // score all lines
-  this.details.score = 0;
-
-  for (var i = 0; i < boardLines.hlines.length; ++i)
-    this.details.score += boardLines.hlines[i].sum;
-
-  for (var i = 0; i < boardLines.vlines.length; ++i)
-    this.details.score += boardLines.vlines[i].sum;
+  this.details.score = boardLines.score();
 
   //---
 
@@ -1757,7 +1760,7 @@ Board.prototype.calcBoardDetails = function() {
 };
 
 Board.prototype.getBoardLines = function(boardLines) {
-console.log("Board.prototype.getBoardLines", boardLines);
+//console.log("Board.prototype.getBoardLines", boardLines);
   var shline = new TileLine(Direction.NONE, -1, -1, -1);
   var svline = new TileLine(Direction.NONE, -1, -1, -1);
 
@@ -1812,7 +1815,7 @@ console.log("Board.prototype.getBoardLines", boardLines);
         line.sum += tile.value;
       }
 
-      if (! current)
+      if (current === 0)
         continue;
 
       line.current = current;
@@ -1822,7 +1825,7 @@ console.log("Board.prototype.getBoardLines", boardLines);
       boardLines.hlines.push(line);
     }
   }
-console.log(boardLines.hlines);
+//console.log(boardLines.hlines);
 
   // get vertical sequences
   for (var ix of boardLines.xinds.values()) {
@@ -1870,7 +1873,7 @@ console.log(boardLines.hlines);
         line.sum += tile.value;
       }
 
-      if (! current)
+      if (current === 0)
         continue;
 
       line.current = current;
@@ -1880,7 +1883,7 @@ console.log(boardLines.hlines);
       boardLines.vlines.push(line);
     }
   }
-console.log(boardLines.vlines);
+//console.log(boardLines.vlines);
 
   if (boardLines.hlines.length === 0 && boardLines.vlines.length === 0) {
     var tile = this.cellTile(new TilePosition(shline.start, shline.pos));
@@ -1923,6 +1926,13 @@ Board.prototype.countTiles = function(pos, side) {
 
 //------
 
+function LineValid () {
+  this.partial = false;
+  this.errMsg  = "";
+}
+
+//------
+
 function TileLine (direction, start, end, pos) {
   this.direction = direction;
   this.start     = start;
@@ -1944,33 +1954,34 @@ TileLine.prototype.hasPosition = function(p) {
 };
 
 TileLine.prototype.startPos = function(p) {
-  if (direction === Direction.HORIZONTAL)
+  if (this.direction === Direction.HORIZONTAL)
     return new TilePosition(this.start, this.pos);
   else
     return new TilePosition(this.pos, this.start);
 };
 
-TileLine.prototype.isValid = function() {
-  var valid   = true;
-  var partial = false;
-  var errMsg  = "";
+TileLine.prototype.isValid = function(lineValid) {
+  lineValid.partial = false;
+  lineValid.errMsg  = "";
 
   if (this.len() > 5) {
-    return { "valid": false, "partial": partial, "errMsg": "Line too long" };
+    lineValid.errMsg = "Line too long";
+    return false;
   }
 
   //---
 
   if ((this.sum % 5) !== 0) {
     if (this.len() === 5) {
-      return { "valid": false, "partial": partial, "errMsg": "Not a multiple of 5" };
+      lineValid.errMsg = "Not a multiple of 5";
+      return false;
     }
 
     this.partial = true;
     this.errMsg  = "Not a multiple of 5 (yet)";
   }
 
-  return { "valid": true, "partial": partial, "errMsg": "Not a multiple of 5" };
+  return true;
 };
 
 //------
@@ -2005,25 +2016,37 @@ function MoveTree () {
   this.children  = [];
   this.partial   = false;
   this.score     = 0;
-  this.scoreTree = new Map();
 }
+
+MoveTree.prototype.addChild = function(child) {
+  child.parent = this;
+
+  this.children.push(child);
+};
+
+MoveTree.prototype.root = function() {
+  if (this.parent === null)
+    return this;
+
+  return this.parent.root();
+};
 
 MoveTree.prototype.maxLeaf = function() {
 console.log("MoveTree.prototype.maxLeaf");
-  this.scoreTree = new Map();
+  var scoreTree = new Map();
 
-  this.updateScoreTree(this.scoreTree);
+  this.updateScoreTree(scoreTree);
 
-  if (this.scoreTree.size === 0) {
+  if (scoreTree.size === 0) {
 console.log("no score tree");
     return null;
   }
 
-console.log(this.scoreTree);
+//console.log(scoreTree);
 
   //---
 
-  var moveTrees = this.scoreTree.values().next().value;
+  var moveTrees = scoreTree.values().next().value;
 
   assert(moveTrees.length !== 0, "Empty Move Trees");
 
@@ -2051,16 +2074,22 @@ console.log(this.scoreTree);
 };
 
 MoveTree.prototype.updateScoreTree = function(scoreTree) {
-console.log("MoveTree.prototype.updateScoreTree", scoreTree);
+//console.log("MoveTree.prototype.updateScoreTree", scoreTree);
   if (! this.partial) {
     assert((this.score % 5) === 0, "bad score");
 
-    scoreTree[-this.score].push_back(this);
+    var iscore = -this.score;
+
+    if (! scoreTree.has(-this.score))
+      scoreTree.set(iscore, []);
+
+    scoreTree.get(iscore).push(this);
   }
 
-  if (! this.children.length) {
-    for (var i = 0; i < this.children.length; ++i)
-      child.updateScoreTree(scoreTree);
+  if (this.children.length > 0) {
+    for (var i = 0; i < this.children.length; ++i) {
+      this.children[i].updateScoreTree(scoreTree);
+    }
   }
 };
 
@@ -2071,14 +2100,23 @@ MoveTree.prototype.depth = function() {
   return this.parent.depth() + 1;
 };
 
-MoveTree.prototype.hierMoves = function() {
-  this.moves.push(move);
+MoveTree.prototype.size = function() {
+  var s = 1;
+
+  for (var i = 0; i < this.children.length; ++i)
+    s += this.children[i].size();
+
+  return s;
+};
+
+MoveTree.prototype.hierMoves = function(moves) {
+  moves.push(this.move);
 
   var parent = this.parent;
 
   while (parent !== null) {
-    if (parent.move.isValid())
-      this.moves.push(parent.move);
+    if (parent.move !== null && parent.move.isValid())
+      moves.push(parent.move);
 
     parent = parent.parent;
   }
@@ -2086,10 +2124,12 @@ MoveTree.prototype.hierMoves = function() {
   // reverse as in wrong order
   var nm = moves.length;
 
-  for (var i = 0; i < nm/2; ++i) {
-    var t                  = this.moves[i];
-    this.moves[i         ] = this.moves[nm - i - 1];
-    this.moves[nm - i - 1] = t;
+  var nm2 = Math.floor(nm/2);
+
+  for (var i = 0; i < nm2; ++i) {
+    var t             = moves[i];
+    moves[i         ] = moves[nm - i - 1];
+    moves[nm - i - 1] = t;
   }
 };
 
@@ -2116,11 +2156,27 @@ Turn.prototype.score = function() {
   var score = 0;
 
   for (var i = 0; i < this.moves.length; ++i) {
-    score += quinto.moveScore(moves[i]);
+    score += quinto.moveScore(this.moves[i]);
   }
 
   return score;
 };
+
+//------
+
+function ValidScore () {
+  this.valid = false;
+  this.score = 0;
+}
+
+//------
+
+function BoardMoves () {
+  this.depth   = 0;
+  this.moves   = [];
+  this.score   = 0;
+  this.partial = false;
+}
 
 //------
 
@@ -2147,6 +2203,18 @@ function BoardLines () {
   this.hlines = [];
   this.vlines = [];
 }
+
+BoardLines.prototype.score = function(pos) {
+  var score = 0;
+
+  for (var i = 0; i < this.hlines.length; ++i)
+    score += this.hlines[i].sum;
+
+  for (var i = 0; i < this.vlines.length; ++i)
+    score += this.vlines[i].sum;
+
+  return score;
+};
 
 //------
 

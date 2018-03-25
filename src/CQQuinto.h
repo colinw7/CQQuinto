@@ -374,6 +374,13 @@ class Move {
 
 //---
 
+struct LineValid {
+  bool    partial { false };
+  QString errMsg;
+};
+
+//---
+
 struct TileLine {
   Direction direction { Direction::NONE };
   int       start     { -1 };
@@ -392,7 +399,7 @@ struct TileLine {
 
   TilePosition startPos() const;
 
-  bool isValid(bool &partial, QString &errMsg) const;
+  bool isValid(LineValid &lineValid) const;
 
   void print(std::ostream &os) const;
 
@@ -454,11 +461,21 @@ struct MoveTree {
 
  ~MoveTree();
 
+  void addChild(MoveTree *child) {
+    child->parent = this;
+
+    children.push_back(child);
+  }
+
+  MoveTree *root() { if (! parent) return this; return parent->root(); }
+
   const MoveTree *maxLeaf() const;
 
   void updateScoreTree(ScoreTree &scoreTree) const;
 
   int depth() const;
+
+  int size() const;
 
   void hierMoves(Moves &move) const;
 
@@ -477,6 +494,8 @@ struct BoardLines {
   Inds      yinds;
   TileLines hlines;
   TileLines vlines;
+
+  int score() const;
 };
 
 //---
@@ -537,7 +556,7 @@ class Board : public QWidget {
 
   void calcBoardDetails();
 
-  MoveTree *buildBoardMoveTree(int depth) const;
+  bool buildMoveTree(MoveTree *tree, int depth) const;
 
   int countTiles(const TilePosition &pos, Side side) const;
 
