@@ -5,6 +5,7 @@
 #include <set>
 #include <memory>
 #include <cassert>
+#include <iostream>
 
 class QToolButton;
 class QPushButton;
@@ -364,7 +365,7 @@ class Move {
   }
 
   void print(std::ostream &os) const {
-    os << "From: "; from_.print(os); os << " To: "  ; to_.print(os);
+    os << "From: "; from_.print(os); os << " To: "; to_.print(os);
   }
 
  private:
