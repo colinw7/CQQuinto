@@ -172,7 +172,7 @@ createWidgets()
     "Human/Human" << "Human/Computer" << "Computer/Human" << "Computer/Computer",
     SLOT(modeSlot(int)));
 
-  modeCombo_->setCurrentIndex((int) playMode());
+  modeCombo_->setCurrentIndex(int(playMode()));
 }
 
 void
@@ -823,7 +823,7 @@ calcFontScale(double s) const
 
   QFontMetricsF fm(font);
 
-  double w = fm.width("8");
+  double w = fm.horizontalAdvance("8");
   double h = fm.height();
 
   return s/std::max(w, h);
@@ -1045,7 +1045,7 @@ drawTile(QPainter *painter, const QRectF &rect)
 
   QString text = QString("%1").arg(value);
 
-  double tx = rect.center().x() - fm.width(text)/2.0;
+  double tx = rect.center().x() - fm.horizontalAdvance(text)/2.0;
   double ty = rect.center().y() + (fm.ascent() - fm.descent())/2;
 
   painter->setPen(textColor);
@@ -1430,16 +1430,16 @@ drawScores(QPainter *painter)
 
   painter->drawText(sx1, sy, p1Title);
 
-  sx1 += fm.width(p1Title) + 2*b;
+  sx1 += fm.horizontalAdvance(p1Title) + 2*b;
 
   painter->drawText(sx1, sy, score1Text);
 
   // draw player 2 score
-  auto sx2 = width() - 2*b - fm.width(score2Text);
+  auto sx2 = width() - 2*b - fm.horizontalAdvance(score2Text);
 
   painter->drawText(sx2, sy, score2Text);
 
-  sx2 -= fm.width(p2Title) + 2*b;
+  sx2 -= fm.horizontalAdvance(p2Title) + 2*b;
 
   painter->drawText(sx2, sy, p2Title);
 }
@@ -1478,11 +1478,11 @@ drawPlayerTiles(QPainter *painter, const PlayerP &player, int x, Qt::Alignment a
   }
   else if (align == Qt::AlignRight) {
     px = x - 2*b - handSize*playerTileSize();
-    tx = px - b - fm.width(playerText);
+    tx = px - b - fm.horizontalAdvance(playerText);
   }
   else {
-    tx = x - fm.width(playerText)/2 - handSize*playerTileSize()/2;
-    px = tx + fm.width(playerText) + 2*b;
+    tx = x - fm.horizontalAdvance(playerText)/2 - handSize*playerTileSize()/2;
+    px = tx + fm.horizontalAdvance(playerText) + 2*b;
   }
 
   auto ty = b;

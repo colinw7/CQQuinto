@@ -199,7 +199,7 @@ class App : public QFrame {
   Q_PROPERTY(QColor   tileBgColor        READ tileBgColor        WRITE setTileBgColor       )
   Q_PROPERTY(QColor   tileBorderColor    READ tileBorderColor    WRITE setTileBorderColor   )
 
-  Q_ENUMS(PlayMode);
+  Q_ENUMS(PlayMode)
 
  public:
   App(QWidget *parent = 0);
