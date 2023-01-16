@@ -297,11 +297,11 @@ class App : public QFrame {
 
   int moveScore(const Move &move) const;
 
-  void resizeEvent(QResizeEvent *);
+  void resizeEvent(QResizeEvent *) override;
 
   double calcFontScale(double s) const;
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
  private slots:
   void cancelSlot();
@@ -563,7 +563,7 @@ class Board : public QWidget {
 
   TileData posToTileData(const QPoint &pos) const;
 
-  void paintEvent(QPaintEvent *);
+  void paintEvent(QPaintEvent *) override;
 
   void drawPlayerTiles(QPainter *painter, const PlayerP &player, int x, Qt::Alignment align);
 
@@ -574,11 +574,11 @@ class Board : public QWidget {
   void drawTile(QPainter *painter, Tile *tile, const QRectF &rect,
                 double s, const QColor &bgColor, const QColor &fgColor);
 
-  void mousePressEvent  (QMouseEvent *);
-  void mouseMoveEvent   (QMouseEvent *);
-  void mouseReleaseEvent(QMouseEvent *);
+  void mousePressEvent  (QMouseEvent *) override;
+  void mouseMoveEvent   (QMouseEvent *) override;
+  void mouseReleaseEvent(QMouseEvent *) override;
 
-  void keyPressEvent(QKeyEvent *);
+  void keyPressEvent(QKeyEvent *) override;
 
  private:
   using ColTiles    = std::vector<Tile *>;
@@ -630,7 +630,7 @@ class Tile : public QWidget {
   void drawTile(QPainter *painter, const QRectF &rect);
 
  private:
-  void paintEvent(QPaintEvent *);
+  void paintEvent(QPaintEvent *) override;
 
  private:
   App*      quinto_ { nullptr };
