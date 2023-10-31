@@ -202,7 +202,7 @@ class App : public QFrame {
   Q_ENUMS(PlayMode)
 
  public:
-  App(QWidget *parent = 0);
+  App(QWidget *parent = nullptr);
  ~App();
 
   int nx() const { return 18; }
