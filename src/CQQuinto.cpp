@@ -2063,7 +2063,7 @@ Board::
 getBoardLines(BoardLines &boardLines) const
 {
 #ifdef USE_HR_TIMER
-  //CIncrementalTimer *timer = CIncrementalTimerMgrInst->get("Board::getBoardLines");
+  //auto *timer = CIncrementalTimerMgrInst->get("Board::getBoardLines");
   //CIncrementalTimerScope stimer(timer);
 #endif
 
